@@ -1,5 +1,5 @@
 #
-# Copyright 2015 Centreon (http://www.centreon.com/)
+# Copyright 2016 Centreon (http://www.centreon.com/)
 #
 # Centreon is a full-fledged industry-strength solution that meets
 # the needs in IT infrastructure and application monitoring for
@@ -18,7 +18,7 @@
 # limitations under the License.
 #
 
-package apps::lync::mode::remoteassistance;
+package storage::netapp::snmp::mode::cacheage;
 
 use base qw(centreon::plugins::mode);
 
@@ -33,10 +33,9 @@ sub new {
     $self->{version} = '1.0';
     $options{options}->add_options(arguments =>
                                 { 
-                                  "warning:s"               => { name => 'warning', },
-                                  "critical:s"              => { name => 'critical', },
+                                  "warning:s"               => { name => 'warning' },
+                                  "critical:s"              => { name => 'critical' },
                                 });
-
     return $self;
 }
 
@@ -51,33 +50,29 @@ sub check_options {
     if (($self->{perfdata}->threshold_validate(label => 'critical', value => $self->{option_results}->{critical})) == 0) {
        $self->{output}->add_option_msg(short_msg => "Wrong critical threshold '" . $self->{option_results}->{critical} . "'.");
        $self->{output}->option_exit();
-    }
+    }    
 }
 
 sub run {
     my ($self, %options) = @_;
-    # $options{sql} = sqlmode object
-    $self->{sql} = $options{sql};
+    # $options{snmp} = snmp object
+    $self->{snmp} = $options{snmp};
 
-    $self->{sql}->connect();
-    $self->{sql}->query(query => q{SELECT count(*)
-                                   FROM [LcsCDR].[dbo].[SessionDetails] s
-                                    left outer join [LcsCDR].[dbo].[Users] u1 on s.User1Id = u1.UserId  left outer join [LcsCDR].[dbo].[Users] u2 on s.User2Id = u2.UserId
-                                   WHERE (MediaTypes & 1)=4
-                                   AND s.SessionIdTime>=dateadd(minute,-5,getdate())}
-                        );
-    my $remote_assistance_sessions = $self->{sql}->fetchrow_array();
+    my $oid_cacheAge = ".1.3.6.1.4.1.789.1.2.2.23.0"; 
 
-    my $exit_code = $self->{perfdata}->threshold_check(value => $remote_assistance_sessions, threshold => [ { label => 'critical', 'exit_litteral' => 'critical' }, { label => 'warning', exit_litteral => 'warning' } ]);
-
-    $self->{output}->output_add(severity => $exit_code,
-                                  short_msg => sprintf("%i remote assistance sessions running", $remote_assistance_sessions));
-    $self->{output}->perfdata_add(label => 'assistance_sessions', unit => 'sessions',
-                                  value => $remote_assistance_sessions,
-                                  warning => $self->{perfdata}->get_perfdata_for_output(label => 'warning'),
-                                  critical => $self->{perfdata}->get_perfdata_for_output(label => 'critical'),
+    my $result = $self->{snmp}->get_leef(oids => [$oid_cacheAge],
+                                         nothing_quit => 1);
+                                         
+    my $exit = $self->{perfdata}->threshold_check(value => $results->{$oid_cacheAge},
+                                                  threshold => [ { label => 'critical', 'exit_litteral' => 'critical' },
+                                                                 { label => 'warning', exit_litteral => 'warning' } ]);
+    $self->{output}->output_add(severity => $exit,
+                                short_msg => sprintf("Cache age is '%s' minutes", $results->{$oid_cacheAge}));
+    $self->{output}->perfdata_add(label => 'cache_age', unit => 'm',
+                                  value => $results->{$oid_cacheAge},
+                                  warning => $self->{option_results}->{warning},
+                                  critical => $self->{option_results}->{critical},
                                   min => 0);
-
     $self->{output}->display();
     $self->{output}->exit();
 }
@@ -88,17 +83,17 @@ __END__
 
 =head1 MODE
 
-Check Lync number of active remote assistance sessions during last five minutes -- use with dyn-mode mssql plugin 
+Check age in minutes of the oldest read-only blocks in the buffer cache.
 
 =over 8
 
 =item B<--warning>
 
-Threshold warning
+Threshold warning in minutes
 
 =item B<--critical>
 
-Threshold critical
+Threshold critical in minutes
 
 =back
 
