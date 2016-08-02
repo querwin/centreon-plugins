@@ -28,11 +28,11 @@ sub new {
     my ($class, %options) = @_;
     my $self = $class->SUPER::new(package => __PACKAGE__, %options);
     bless $self, $class;
-    # $options->{options} = options object
 
     $self->{version} = '0.1';
     %{$self->{modes}} = (
                          'crm'          => 'apps::pacemaker::local::mode::crm',
+                         'constraints'  => 'apps::pacemaker::local::mode::constraints',
                          );
 
     return $self;

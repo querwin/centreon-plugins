@@ -50,7 +50,7 @@ sub new {
     return $self;
 }
 
-sub check_treshold_overload {
+sub check_threshold_overload {
     my ($self, %options) = @_;
     
     $self->{overload_th} = {};
@@ -72,7 +72,7 @@ sub check_treshold_overload {
 sub check_options {
     my ($self, %options) = @_;
     $self->SUPER::init(%options);
-    $self->check_treshold_overload();
+    $self->check_threshold_overload();
 }
 
 sub get_severity {
@@ -99,7 +99,6 @@ sub get_severity {
 
 sub run {
     my ($self, %options) = @_;
-    # $options{snmp} = snmp object
     $self->{snmp} = $options{snmp};
     
     $self->{result} = $self->{snmp}->get_leef(oids => [ $oid_panSysHAState, $oid_panSysHAPeerState, $oid_panSysHAMode ], 

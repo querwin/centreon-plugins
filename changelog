@@ -1,3 +1,60 @@
+2016-06-27 Quentin Garnier <qgarnier@centreon.com>
+ * Update FAQ: build a standalone perl script
+ * Plugin added: to check Lenovo S Series (#412)
+ * Plugin added: to check Digi AnywhereUSB
+ * Mode added: [netasq] 'ha-nodes'
+ * Mode removed: [netasq] 'ha-status'
+ * Fix: [dell n4000]{environment} wrong temperature (#397)
+ * Fix: [netapp]{cache-age} not working (#422)
+ * Fix: [cisco wlc]{ap-users} wrong total
+ * Fix: [tomcat]{memory} problem with java 8
+ * Fix: [netapp]{filesys} no values (#415)
+
+2016-05-24 Quentin Garnier <qgarnier@centreon.com>
+ * Can use '/' instead '::' for plugin option (#380)
+ * Mode added: [pacemaker] 'constraints'
+ * Mode added: [netbackup] 'tape-usage'
+ * Mode added: [oracle] 'data-files-status'
+ * Mode added: [netasq] 'connections'
+ * Enhancement: [cisco wlc]{ap-users} get users by AP (#375)
+ * Enhancement: [oracle]{tablespace} can use free size left
+ * Fix: [pdu apc]{load} incorrect values (#408)
+ * Fix: [mscs] Issue with old versions
+ * Fix: [postgres]{timesync} threshold issue
+ * Fix: [ntp]{offset} time formula issue
+ * Fix: [github]{issues} Get only issue
+ * Fix: [netasq]{memory} Use BSD memory check
+ * Fix: [tomcat]{applications} Issue on Windows (#356)
+
+2016-03-24 Quentin Garnier <qgarnier@centreon.com>
+ * Plugin added: to check AKCP SensorProbe
+ * Plugin added: to check Juniper ISG
+ * Plugin added: to check OSPF protocol
+ * Plugin added: to check Microsoft Cluster Service
+ * Plugin added: to check Dell Compellent in SNMP and Powershell SDK
+ * Enhancement: [snmp_standard]{string-value} Many changes (#228)
+ * Fix: [raritan] OnOff sending errors (#348)
+
+2016-02-20 Quentin Garnier <qgarnier@centreon.com>
+ * Add a class for FatPacker system
+
+2016-02-17 Quentin Garnier <qgarnier@centreon.com>
+ * Plugin added: to check Kemp
+ * Plugin added: to check Netbackup
+ * Plugin added: to check Ucopia Wireless Controller
+ * Plugin added: to check Emerson Liebert PDU
+ * Plugin added: to check Microsoft Lync 2013
+ * Plugin added: to check TemPERHum sensors
+ * Mode added: [mysql] 'table-size'
+ * Mode added: [centreon] 'count-services'
+ * Mode added: [iDrac] 'hardware' (for iDrac 8)
+ * Enhancement: [xtremio] hardened code
+ * Enhancement: [cisco asa]{sessions} better metrics (#315)
+ * Enhancement: [freebsd]{memory} More real values
+ * Fix: [oracle]{tablespace-usage} Usage more than 100%
+ * Fix: [clariion]{disks} Last disks was missing
+ * Fix: [mssql]{failed-jobs} wrong thresholds
+
 2016-01-22 Quentin Garnier <qgarnier@centreon.com>
  * Plugin added: Add a plugin to check Juniper Trapeze in SNMP
  * Plugin added: Add a plugin to check Dell ML6000 in SNMP

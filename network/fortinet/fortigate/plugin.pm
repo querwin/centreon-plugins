@@ -28,7 +28,6 @@ sub new {
     my ($class, %options) = @_;
     my $self = $class->SUPER::new(package => __PACKAGE__, %options);
     bless $self, $class;
-    # $options->{options} = options object
 
     $self->{version} = '1.0';
     %{$self->{modes}} = (
@@ -42,6 +41,7 @@ sub new {
                          'memory'               => 'centreon::common::fortinet::fortigate::mode::memory',
                          'sessions'             => 'centreon::common::fortinet::fortigate::mode::sessions',
                          'virus'                => 'centreon::common::fortinet::fortigate::mode::virus',
+                         'vpn'                  => 'centreon::common::fortinet::fortigate::mode::vpn',
                          );
 
     return $self;

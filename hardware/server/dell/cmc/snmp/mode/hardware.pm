@@ -128,7 +128,6 @@ sub display_system_information {
 
 sub run {
     my ($self, %options) = @_;
-    # $options{snmp} = snmp object
     $self->{snmp} = $options{snmp};
 
     my $snmp_request = [ { oid => $oid_drsProductShortName }, { oid => $oid_drsChassisServiceTag }, { oid => $oid_drsFirmwareVersion } ];
@@ -293,12 +292,12 @@ Example: --threshold-overload='health,CRITICAL,^(?!(ok)$)'
 
 =item B<--warning>
 
-Set warning threshold for temperatures (syntax: type,regexp,treshold)
+Set warning threshold for temperatures (syntax: type,regexp,threshold)
 Example: --warning='temperature,.*,30'
 
 =item B<--critical>
 
-Set critical threshold for temperatures (syntax: type,regexp,treshold)
+Set critical threshold for temperatures (syntax: type,regexp,threshold)
 Example: --critical='temperature,.*,40'
 
 =back

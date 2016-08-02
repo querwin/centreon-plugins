@@ -47,7 +47,7 @@ sub new {
     return $self;
 }
 
-sub check_treshold_overload {
+sub check_threshold_overload {
     my ($self, %options) = @_;
     
     $self->{overload_th} = {};
@@ -69,7 +69,7 @@ sub check_treshold_overload {
 sub check_options {
     my ($self, %options) = @_;
     $self->SUPER::init(%options);
-    $self->check_treshold_overload();
+    $self->check_threshold_overload();
 }
 
 sub check_exclude {
@@ -106,7 +106,6 @@ sub get_severity {
 
 sub run {
     my ($self, %options) = @_;
-    # $options{snmp} = snmp object
     $self->{snmp} = $options{snmp};
 
     my $oid_panMgmtPanoramaConnected = '.1.3.6.1.4.1.25461.2.1.2.4.1.0';
