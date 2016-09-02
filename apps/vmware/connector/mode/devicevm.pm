@@ -18,7 +18,7 @@
 # limitations under the License.
 #
 
-package apps::vmware::connector::mode::memoryhost;
+package apps::vmware::connector::mode::devicevm;
 
 use base qw(centreon::plugins::mode);
 
@@ -33,15 +33,18 @@ sub new {
     $self->{version} = '1.0';
     $options{options}->add_options(arguments =>
                                 {
-                                  "esx-hostname:s"          => { name => 'esx_hostname' },
+                                  "vm-hostname:s"           => { name => 'vm_hostname' },
                                   "filter"                  => { name => 'filter' },
                                   "scope-datacenter:s"      => { name => 'scope_datacenter' },
                                   "scope-cluster:s"         => { name => 'scope_cluster' },
+                                  "scope-host:s"            => { name => 'scope_host' },
+                                  "filter-description:s"    => { name => 'filter_description' },
                                   "disconnect-status:s"     => { name => 'disconnect_status', default => 'unknown' },
+                                  "nopoweredon-status:s"    => { name => 'nopoweredon_status', default => 'unknown' },
+                                  "display-description"     => { name => 'display_description' },
                                   "warning:s"               => { name => 'warning' },
                                   "critical:s"              => { name => 'critical' },
-                                  "warning-state:s"         => { name => 'warning_state' },
-                                  "critical-state:s"        => { name => 'critical_state' },
+                                  "device:s"                => { name => 'device' },
                                 });
     return $self;
 }
@@ -50,7 +53,7 @@ sub check_options {
     my ($self, %options) = @_;
     $self->SUPER::init(%options);
     
-    foreach my $label (('warning', 'critical', 'warning_state', 'critical_state')) {
+    foreach my $label (('warning', 'critical')) {
         if (($self->{perfdata}->threshold_validate(label => $label, value => $self->{option_results}->{$label})) == 0) {
             my ($label_opt) = $label;
             $label_opt =~ tr/_/-/;
@@ -58,8 +61,17 @@ sub check_options {
             $self->{output}->option_exit();
         }
     }
+
+    if (!defined($self->{option_results}->{device}) || $self->{option_results}->{device} eq '') {
+        $self->{output}->add_option_msg(short_msg => "Please set device option.");
+        $self->{output}->option_exit();
+    }
     if ($self->{output}->is_litteral_status(status => $self->{option_results}->{disconnect_status}) == 0) {
-        $self->{output}->add_option_msg(short_msg => "Wrong disconnect-status status option '" . $self->{option_results}->{disconnect_status} . "'.");
+        $self->{output}->add_option_msg(short_msg => "Wrong disconnect-status option '" . $self->{option_results}->{disconnect_status} . "'.");
+        $self->{output}->option_exit();
+    }
+    if ($self->{output}->is_litteral_status(status => $self->{option_results}->{nopoweredon_status}) == 0) {
+        $self->{output}->add_option_msg(short_msg => "Wrong nopoweredon-status option '" . $self->{option_results}->{nopoweredon_status} . "'.");
         $self->{output}->option_exit();
     }
 }
@@ -69,7 +81,7 @@ sub run {
     $self->{connector} = $options{custom};
 
     $self->{connector}->add_params(params => $self->{option_results},
-                                   command => 'memhost');
+                                   command => 'devicevm');
     $self->{connector}->run();
 }
 
@@ -79,18 +91,22 @@ __END__
 
 =head1 MODE
 
-Check ESX memory usage.
+Check virtual machine device connected.
 
 =over 8
 
-=item B<--esx-hostname>
+=item B<--vm-hostname>
 
-ESX hostname to check.
-If not set, we check all ESX.
+VM hostname to check.
+If not set, we check all VMs.
 
 =item B<--filter>
 
-ESX hostname is a regexp.
+VM hostname is a regexp.
+
+=item B<--filter-description>
+
+Filter also virtual machines description (can be a regexp).
 
 =item B<--scope-datacenter>
 
@@ -100,25 +116,33 @@ Search in following datacenter(s) (can be a regexp).
 
 Search in following cluster(s) (can be a regexp).
 
+=item B<--scope-host>
+
+Search in following host(s) (can be a regexp).
+
 =item B<--disconnect-status>
 
-Status if ESX host disconnected (default: 'unknown').
+Status if VM disconnected (default: 'unknown').
+
+=item B<--nopoweredon-status>
+
+Status if VM is not poweredOn (default: 'unknown').
+
+=item B<--display-description>
+
+Display virtual machine description.
 
 =item B<--warning>
 
-Threshold warning in percent.
+Threshold warning in bytes per seconds.
 
 =item B<--critical>
 
-Threshold critical in percent.
+Threshold critical in bytes per seconds.
 
-=item B<--warning-state>
+=item B<--device>
 
-Threshold warning. For state != 'high': --warning-state=0
-
-=item B<--critical-state>
-
-Threshold critical. For state != 'high': --warning-state=0
+Device to check (Required) (Example: --device='VirtualCdrom').
 
 =back
 
