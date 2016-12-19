@@ -30,11 +30,11 @@ use Pod::Find qw(pod_where);
 
 my %handlers = (DIE => {});
 
-my $global_version = 20160902;
+my $global_version = 20161212;
 my $alternative_fatpacker = 0;
 
 sub new {
-    my $class = shift;
+    my ($class) = @_;
     my $self  = {};
     bless $self, $class;
 
@@ -50,7 +50,7 @@ sub new {
 }
 
 sub prepare_destroy {
-    my $self = shift;
+    my ($self) = @_;
 
     delete $handlers{DIE}->{$self};
 }
@@ -79,7 +79,7 @@ sub handle_DIE {
 }
 
 sub get_plugin {
-    my $self = shift;
+    my ($self) = @_;
     
     ######
     # Need to load global 'Output' and 'Options'
@@ -122,7 +122,7 @@ sub get_plugin {
 }
 
 sub display_local_help {
-    my $self = shift;
+    my ($self) = @_;
 
     my $stdout;
     if ($self->{help}) {
@@ -166,9 +166,75 @@ sub check_directory {
     closedir $dh;
 }
 
+sub fatpacker_find_plugin {
+    my ($self) = @_;
+    
+    my $plugins = [];
+    foreach (@INC) {
+        next if (ref($_) !~ /FatPacked/);
+        foreach my $name (keys %$_) {
+            if ($name =~ /plugin.pm$/) {
+                push @$plugins, $name;
+            }
+        }
+    }
+    
+    return $plugins;
+}
+
+sub check_plugin_option {
+    my ($self) = @_;
+    
+    if (defined($self->{version})) {
+        $self->{output}->add_option_msg(short_msg => "Global Version: " . $global_version);
+        $self->{output}->option_exit(nolabel => 1);
+    }
+    
+    my $no_plugin = 1;
+    if ($alternative_fatpacker == 1) {
+        my $integrated_plugins = $self->fatpacker_find_plugin();
+        if (scalar(@$integrated_plugins) == 1) {
+            $self->{plugin} = $integrated_plugins->[0];
+            $no_plugin = 0;
+        }
+    }
+    
+    if ($no_plugin == 1) {
+        $self->{output}->add_option_msg(short_msg => "Need to specify '--plugin' option.");
+        $self->{output}->option_exit();
+    }
+}
+
 sub display_list_plugin {
-    my $self = shift;
+    my ($self) = @_;
     $self->{plugins_result} = {};
+    
+    if ($alternative_fatpacker == 1) {
+        my $integrated_plugins = $self->fatpacker_find_plugin();
+        
+        foreach my $key (@$integrated_plugins) {
+            # Need to load it to get the description
+            centreon::plugins::misc::mymodule_load(output => $self->{output}, module => $self->{plugin}, 
+                                                   error_msg => "Cannot load module --plugin.");
+                                               
+            my $name = $key;
+            $name =~ s/\.pm//g;
+            $name =~ s/\//::/g;
+            $self->{output}->add_option_msg(long_msg => '-----------------');
+            $self->{output}->add_option_msg(long_msg => 'PLUGIN: ' . $name);
+            {
+                my $stdout = '';
+                local *STDOUT;
+                open STDOUT, '>', \$stdout;
+                my $content_class = $INC{$key}->{$key};
+                open my $str_fh, '<', \$content_class;
+                pod2usage(-exitval => "NOEXIT", -input => $str_fh, -verbose => 99, -sections => "PLUGIN DESCRIPTION");
+                close $str_fh;
+                $self->{output}->add_option_msg(long_msg => $stdout);
+            }
+        }
+        return ;
+    }
     
     # Search file 'plugin.pm'
     $self->check_directory($FindBin::Bin);
@@ -247,7 +313,7 @@ sub check_relaunch {
 }
 
 sub run {
-    my $self = shift;
+    my ($self) = @_;
 
     $self->get_plugin();
 
@@ -260,12 +326,7 @@ sub run {
         $self->{output}->option_exit();
     }
     if (!defined($self->{plugin}) || $self->{plugin} eq '') {
-        if (defined($self->{version})) {
-            $self->{output}->add_option_msg(short_msg => "Global Version: " . $global_version);
-            $self->{output}->option_exit(nolabel => 1);
-        }
-        $self->{output}->add_option_msg(short_msg => "Need to specify '--plugin' option.");
-        $self->{output}->option_exit();
+        $self->check_plugin_option();
     }
     if (defined($self->{ignore_warn_msg})) {
         $SIG{__WARN__} = sub {};
