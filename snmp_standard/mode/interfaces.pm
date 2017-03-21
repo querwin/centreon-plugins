@@ -1,5 +1,5 @@
 #
-# Copyright 2016 Centreon (http://www.centreon.com/)
+# Copyright 2017 Centreon (http://www.centreon.com/)
 #
 # Centreon is a full-fledged industry-strength solution that meets
 # the needs in IT infrastructure and application monitoring for
@@ -74,6 +74,7 @@ sub custom_status_calc {
     
     $self->{result_values}->{opstatus} = $options{new_datas}->{$self->{instance} . '_opstatus'};
     $self->{result_values}->{admstatus} = $options{new_datas}->{$self->{instance} . '_admstatus'};
+    $self->{result_values}->{display} = $options{new_datas}->{$self->{instance} . '_display'};
     return 0;
 }
 
@@ -112,7 +113,7 @@ sub custom_traffic_perfdata {
     }
     if (defined($instance_mode->{option_results}->{nagvis_perfdata})) {
         $self->{result_values}->{traffic_per_seconds} /= 8;
-        $self->{result_values}->{speed} /= 8;
+        $self->{result_values}->{speed} /= 8 if (defined($self->{result_values}->{speed}));
     }
     
     my ($warning, $critical);
@@ -456,12 +457,12 @@ sub set_counters {
         };
         $self->{maps_counters}->{int}->{'065_out-mcast'} = { filter => 'add_cast',
             set => {
-                key_values => [ { name => 'iucast', diff => 1 }, { name => 'imcast', diff => 1 }, { name => 'ibcast', diff => 1 }, { name => 'display' }, { name => 'mode_cast' } ],
-                closure_custom_calc => \&custom_cast_calc, closure_custom_calc_extra_options => { label_ref => 'ibcast', total_ref1 => 'iucast', total_ref2 => 'imcast' },
-                output_template => 'In Bcast : %.2f %%', output_error_template => 'In Bcast : %s',
-                output_use => 'ibcast_prct',  threshold_use => 'ibcast_prct',
+                key_values => [ { name => 'oucast', diff => 1 }, { name => 'omcast', diff => 1 }, { name => 'obcast', diff => 1 }, { name => 'display' }, { name => 'mode_cast' } ],
+                closure_custom_calc => \&custom_cast_calc, closure_custom_calc_extra_options => { label_ref => 'omcast', total_ref1 => 'oucast', total_ref2 => 'obcast' },
+                output_template => 'Out Mcast : %.2f %%', output_error_template => 'Out Mcast : %s',
+                output_use => 'omcast_prct',  threshold_use => 'omcast_prct',
                 perfdatas => [
-                    { value => 'ibcast_prct', template => '%.2f',
+                    { value => 'omcast_prct', template => '%.2f',
                       unit => '%', min => 0, max => 100, label_extra_instance => 1, instance_use => 'display' },
                 ],
             }
@@ -472,7 +473,7 @@ sub set_counters {
 sub set_key_values_status {
     my ($self, %options) = @_;
 
-    return [ { name => 'opstatus' }, { name => 'admstatus' } ];
+    return [ { name => 'opstatus' }, { name => 'admstatus' }, { name => 'display' } ];
 }
 
 sub set_key_values_in_traffic {

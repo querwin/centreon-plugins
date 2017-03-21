@@ -1,5 +1,5 @@
 #
-# Copyright 2016 Centreon (http://www.centreon.com/)
+# Copyright 2017 Centreon (http://www.centreon.com/)
 #
 # Centreon is a full-fledged industry-strength solution that meets
 # the needs in IT infrastructure and application monitoring for
@@ -35,12 +35,12 @@ my %mapping_memory = (
     'CMS Perm Gen' => 'permanent',
     'PS Perm Gen' => 'permanent',
     'Perm Gen' => 'permanent',
+    'Metaspace' => 'permanent',
     'Code Cache' => 'code',
     'CMS Old Gen' => 'tenured',
     'PS Old Gen' => 'tenured',
     'Tenured Gen' => 'tenured',
 );
-
 
 sub new {
     my ($class, %options) = @_;
@@ -94,6 +94,12 @@ sub run {
     foreach my $key (keys %$result) { 
         $key =~ /name=(.*?),type/;
         my $memtype = $1;
+        
+        if (!defined($mapping_memory{$memtype})) {
+            $self->{output}->output_add(long_msg => "unknown memory type: " . $memtype, debug => 1);
+            next;
+        }
+        
         my $prct = $result->{"java.lang:name=".$memtype.",type=MemoryPool"}->{Usage}->{used} / $result->{"java.lang:name=".$memtype.",type=MemoryPool"}->{Usage}->{max} * 100;
 
         $self->{output}->perfdata_add(label => $mapping_memory{$memtype}, unit => 'B',
